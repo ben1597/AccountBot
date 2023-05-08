@@ -1,0 +1,17 @@
+{
+  "name": "account",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "eslint": "^8.39.0",
+    "google-spreadsheet": "^3.3.0",
+    "node-fetch-commonjs": "^3.2.4",
+    "node-telegram-bot-api": "^0.61.0"
+  }
+}

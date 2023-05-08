@@ -1,0 +1,5 @@
+/.idea/
+logs
+.vscode/
+excel
+node_modules/
