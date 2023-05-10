@@ -94,10 +94,15 @@ class TelegramBotService {
     bot.on('callback_query', function (query) {
       const { data, message } = query
       const account = accountList.find(f => f.callback_data === data)
-      // console.log(query)
-      inlineKeyboard(account, message.chat.id)
+      console.log(query)
+      // console.log(message.from.id, message.message_id, message.chat.id)
 
-      bot.answerCallbackQuery(query.id, { text: account.msg })
+      if (account) {
+        inlineKeyboard(account, message.chat.id)
+        bot.answerCallbackQuery(query.id, { text: account.msg })
+      } else {
+        bot.answerCallbackQuery(query.id, { text: '請輸入金額！' })
+      }
     })
   }
 
