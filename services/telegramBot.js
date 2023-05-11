@@ -1,5 +1,8 @@
 
 const TelegramBot = require('node-telegram-bot-api')
+const redisClient = require('../config/redisClient')
+const { setData } = require('./googleSheet.js')
+const moment = require('moment/moment')
 // const fs = require('fs')
 // const fetch = require('node-fetch-commonjs')
 
@@ -7,13 +10,13 @@ const token = '6147479541:AAHfaSxg1HlHJOWHcYZL_fTG13kYIgVIfhw'
 // 括號裡面的內容需要改為在第5步獲得的Token
 const bot = new TelegramBot(token, { polling: true })
 
-const accountList = [
+const accountMenuList = [
   {
     text: '記帳類別',
     msg: '歡迎使用記帳機器人！',
     split_nums: 2,
     callback_data: '/to-main',
-    menu_list: [{ text: '飲食', callback_data: '/to-sub-food' }, { text: '生活', callback_data: '/to-sub-life' }, { text: '其他', callback_data: '/to-sub-other' }, { text: '收入', callback_data: '/to-sub-income' }]
+    menu_list: [{ text: '飲食', callback_data: '/to-sub-food' }, { text: '生活', callback_data: '/to-sub-life' }, { text: '其他', callback_data: '/to-sub-other' }, { text: '收入', callback_data: '/to-sub-income' }, { text: '選擇日期', callback_data: '/select-date' }]
   },
   {
     text: '飲食',
@@ -45,6 +48,11 @@ const accountList = [
   }
 ]
 
+const accountList = [{ text: '飲食', callback_data: '/to-sub-food' }, { text: '生活', callback_data: '/to-sub-life' }, { text: '其他', callback_data: '/to-sub-other' }, { text: '收入', callback_data: '/to-sub-income' },
+  { text: '早餐', callback_data: '/food-breakfast' }, { text: '午餐', callback_data: '/food-lunch' }, { text: '晚餐', callback_data: '/food-dinner' },
+  { text: '投資理財', callback_data: '/other-invest' }, { text: '學習', callback_data: '/other-study' }, { text: '保險', callback_data: '/other-insurance' }, { text: '交通', callback_data: '/other-traffic' }, { text: '寵物', callback_data: '/other-pet' }, { text: '其他', callback_data: '/other-other' },
+  { text: '薪資', callback_data: '/income-salary' }, { text: '獎金', callback_data: '/income-bonus' }, { text: '投資', callback_data: '/income-invest' }, { text: '保險', callback_data: '/income-insurance' }, { text: '交通', callback_data: '/income-traffic' }, { text: '其他', callback_data: '/income-other' }]
+
 const inlineKeyboard = function (account, chatId) {
   bot.sendMessage(chatId, account.msg, {
     reply_markup: {
@@ -63,15 +71,38 @@ const splitKeyboard = function (array, num) {
   return newArray
 }
 
+const sendDateInlineKeyboard = function (chatId) {
+  const dateArray = []
+  for (let i = 0; i < 6; i++) {
+    const date = moment().add('d', i).format('MM-DD')
+
+    if (i === 5) {
+      dateArray.push({ text: date, callback_data: '/date-' + date })
+      dateArray.push({ text: '<<', callback_data: '/date-previous-' + date })
+      dateArray.push({ text: '>>', callback_data: '/date-next-' + date })
+    } else {
+      dateArray.push({ text: date, callback_data: '/date-' + date })
+    }
+  }
+
+  bot.sendMessage(chatId, '選擇日期！', {
+    reply_markup: {
+      inline_keyboard: splitKeyboard(dateArray, 3),
+      resize_keyboard: true,
+      one_time_keyboard: true
+    }
+  })
+}
+
 // 使用Long Polling的方式與Telegram伺服器建立連線
 class TelegramBotService {
-  listenStart () {
+  async listenStart () {
     // console.log(bot.getUpdates())
 
     // bot.onText(/^.*$/, function (msg) {
     //   const chatId = msg.chat.id // 用戶的ID
     //   //   TelegramBotService.checkInput(chatId, msg.text)
-    //   inlineKeyboard(accountList.find(f => f.callback_data === '/to-main'), chatId)
+    //   // inlineKeyboard(accountList.find(f => f.callback_data === '/to-main'), chatId)
     // })
     // const img = fs.createReadStream('./img/account_main.png')
 
@@ -83,25 +114,49 @@ class TelegramBotService {
     //     photo: img
     //   })
     // })
+    bot.onText(/^\d+$/, async function (msg) {
+      const chatId = msg.chat.id // 用戶的ID
+      // const account = accountList.find(f => f.callback_data === data)
 
-    bot.onText(/\/account/, function (msg) {
+      const cacheData = await redisClient.v4.get(chatId.toString())
+      const account = accountList.find(f => f.callback_data === cacheData)
+      if (account) {
+        const today = moment()
+        console.log((today.get('month') + 1) + ',' + today.get('date'))
+        const resp = await setData('1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4', '449205789', `${(today.get('month') + 1)}月${today.get('date')}日`, account.text, msg.text)
+        console.log(resp)
+        bot.sendMessage(chatId, `${account.text}:${msg.text}元，記帳完成！`)
+      } else {
+        bot.sendMessage(chatId, '尚未選擇記帳類別！')
+      }
+    })
+
+    bot.onText(/\/\$/, function (msg) {
       const chatId = msg.chat.id // 用戶的ID
       //   TelegramBotService.checkInput(chatId, msg.text)
-      inlineKeyboard(accountList.find(f => f.callback_data === '/to-main'), chatId)
+      inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
     })
 
     // 監聽inlineKeyboard回應
-    bot.on('callback_query', function (query) {
+    bot.on('callback_query', async function (query) {
       const { data, message } = query
-      const account = accountList.find(f => f.callback_data === data)
-      console.log(query)
+      const accountMenu = accountMenuList.find(f => f.callback_data === data)
+      // console.log(query)
       // console.log(message.from.id, message.message_id, message.chat.id)
 
-      if (account) {
-        inlineKeyboard(account, message.chat.id)
-        bot.answerCallbackQuery(query.id, { text: account.msg })
+      if (accountMenu) {
+        inlineKeyboard(accountMenu, message.chat.id)
+        bot.answerCallbackQuery(query.id, { text: accountMenu.msg })
+      } else if (data === '/select-date') {
+        sendDateInlineKeyboard(message.chat.id, 0)
+      } else if (data.includes('/date-previous')) {
+        sendDateInlineKeyboard(message.chat.id, )
+      } else if (data.includes('/date-next')) {
+        //
       } else {
-        bot.answerCallbackQuery(query.id, { text: '請輸入金額！' })
+        const account = accountList.find(f => f.callback_data === data)
+        bot.answerCallbackQuery(query.id, { text: `已選取${account.text}，請輸入金額！` })
+        await redisClient.set(message.chat.id, data, 'EX', 60 * 5)
       }
     })
   }
@@ -166,20 +221,20 @@ class TelegramBotService {
   //   listenCal () {
   //     // 收到/cal開頭的訊息時會觸發這段程式
   //     bot.onText(/\/cal (.+)/, function (msg, match) {
-  //       const fromId = msg.from.id // 用戶的ID
+  //       const chatId = msg.chat.id // 用戶的ID
   //       let resp = match[1].replace(/[^-()\d/*+.]/g, '')
   //       // match[1]的意思是 /cal 後面的所有內容
   //       resp = '計算結果為: ' + eval(resp)
   //       // eval是用作執行計算的function
-  //       bot.sendMessage(fromId, resp) // 發送訊息的function
+  //       bot.sendMessage(chatId, resp) // 發送訊息的function
   //     })
   //   }
 
   listenTest () {
     // 收到/cal開頭的訊息時會觸發這段程式
     bot.onText(/\/test/, function (msg) {
-      const fromId = msg.from.id // 用戶的ID
-      bot.sendMessage(fromId, '沒錯我是新阿寶')
+      const chatId = msg.chat.id // 用戶的ID
+      bot.sendMessage(chatId, '沒錯我是新阿寶')
     })
   }
 }
