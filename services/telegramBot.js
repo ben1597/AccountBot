@@ -3,6 +3,7 @@ const TelegramBot = require('node-telegram-bot-api')
 const redisClient = require('../config/redisClient')
 const { setData } = require('./googleSheet.js')
 const moment = require('moment/moment')
+const { json } = require('express')
 // const fs = require('fs')
 // const fetch = require('node-fetch-commonjs')
 
@@ -50,6 +51,7 @@ const accountMenuList = [
 
 const accountList = [{ text: '飲食', callback_data: '/to-sub-food' }, { text: '生活', callback_data: '/to-sub-life' }, { text: '其他', callback_data: '/to-sub-other' }, { text: '收入', callback_data: '/to-sub-income' },
   { text: '早餐', callback_data: '/food-breakfast' }, { text: '午餐', callback_data: '/food-lunch' }, { text: '晚餐', callback_data: '/food-dinner' },
+  { text: '生活用品', callback_data: '/life-basicCommodities' }, { text: '日常', callback_data: '/life-daily' }, { text: '治裝/美容', callback_data: '/life-dressAndBeauty' }, { text: '娛樂', callback_data: '/life-entertainment' }, { text: '交際/聚餐', callback_data: '/life-social' },
   { text: '投資理財', callback_data: '/other-invest' }, { text: '學習', callback_data: '/other-study' }, { text: '保險', callback_data: '/other-insurance' }, { text: '交通', callback_data: '/other-traffic' }, { text: '寵物', callback_data: '/other-pet' }, { text: '其他', callback_data: '/other-other' },
   { text: '薪資', callback_data: '/income-salary' }, { text: '獎金', callback_data: '/income-bonus' }, { text: '投資', callback_data: '/income-invest' }, { text: '保險', callback_data: '/income-insurance' }, { text: '交通', callback_data: '/income-traffic' }, { text: '其他', callback_data: '/income-other' }]
 
@@ -71,17 +73,16 @@ const splitKeyboard = function (array, num) {
   return newArray
 }
 
-const sendDateInlineKeyboard = function (chatId) {
+const sendDateInlineKeyboard = function (chatId, day) {
   const dateArray = []
   for (let i = 0; i < 6; i++) {
-    const date = moment().add('d', i).format('MM-DD')
+    const date = moment().add('d', day).add('d', i).format('MM/DD')
 
+    dateArray.push({ text: date, callback_data: '/date-confirm-' + date })
     if (i === 5) {
-      dateArray.push({ text: date, callback_data: '/date-' + date })
-      dateArray.push({ text: '<<', callback_data: '/date-previous-' + date })
-      dateArray.push({ text: '>>', callback_data: '/date-next-' + date })
-    } else {
-      dateArray.push({ text: date, callback_data: '/date-' + date })
+      const plusMinusSign = day >= 0 ? 'p' : 'm'
+      dateArray.push({ text: '<<', callback_data: `/date-previous-${plusMinusSign}-${Math.abs(day)}` })
+      dateArray.push({ text: '>>', callback_data: `/date-next-${plusMinusSign}-${Math.abs(day)}` })
     }
   }
 
@@ -119,7 +120,13 @@ class TelegramBotService {
       // const account = accountList.find(f => f.callback_data === data)
 
       const cacheData = await redisClient.v4.get(chatId.toString())
-      const account = accountList.find(f => f.callback_data === cacheData)
+      if (!cacheData) {
+        bot.sendMessage(chatId, '尚未選擇記帳類別！')
+        return
+      }
+
+      const cacheJson = JSON.parse(cacheData)
+      const account = accountList.find(f => f.callback_data === cacheJson.callback_data)
       if (account) {
         const today = moment()
         console.log((today.get('month') + 1) + ',' + today.get('date'))
@@ -149,14 +156,30 @@ class TelegramBotService {
         bot.answerCallbackQuery(query.id, { text: accountMenu.msg })
       } else if (data === '/select-date') {
         sendDateInlineKeyboard(message.chat.id, 0)
+        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
       } else if (data.includes('/date-previous')) {
-        sendDateInlineKeyboard(message.chat.id, )
+        let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
+        if (data.split('-')[2] === 'm') day *= -1
+        sendDateInlineKeyboard(message.chat.id, day - 5)
+        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
       } else if (data.includes('/date-next')) {
-        //
+        let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
+        if (data.split('-')[2] === 'm') day *= -1
+        sendDateInlineKeyboard(message.chat.id, day + 5)
+        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
+      } else if (data.includes('/date-confirm')) {
+        const date = data.split('-')[2]
+        bot.answerCallbackQuery(query.id, { text: `已選擇日期${date}請選擇記帳類別！` })
+        const cacheData = await redisClient.v4.get(message.chat.id.toString())
+        cacheData.date = date
+        await redisClient.set(message.chat.id.toString(), cacheData, 'EX', 60 * 5)
       } else {
         const account = accountList.find(f => f.callback_data === data)
+
+        if (!account) return
+
         bot.answerCallbackQuery(query.id, { text: `已選取${account.text}，請輸入金額！` })
-        await redisClient.set(message.chat.id, data, 'EX', 60 * 5)
+        await redisClient.set(message.chat.id, JSON.stringify({ callback_data: data }), 'EX', 60 * 5)
       }
     })
   }
