@@ -3,3 +3,4 @@ logs
 .vscode/
 excel
 node_modules/
+.env
