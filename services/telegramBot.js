@@ -31,29 +31,28 @@ const accountMenuList = [
     msg: '請選擇生活類別！',
     split_nums: 3,
     callback_data: '/to-sub-life',
-    menu_list: [{ text: '生活用品', callback_data: '/life-basicCommodities' }, { text: '日常', callback_data: '/life-daily' }, { text: '治裝/美容', callback_data: '/life-dressAndBeauty' }, { text: '娛樂', callback_data: '/life-entertainment' }, { text: '交際/聚餐', callback_data: '/life-social' }]
+    menu_list: [{ text: '生活用品', callback_data: '/life-basicCommodities' }, { text: '日常', callback_data: '/life-daily' }, { text: '投資理財', callback_data: '/other-invest' }, { text: '交通', callback_data: '/life-traffic' }, { text: '治裝/美容', callback_data: '/life-dressAndBeauty' }, { text: '娛樂', callback_data: '/life-entertainment' }, { text: '交際/聚餐', callback_data: '/life-social' }]
   },
   {
     text: '其他',
     msg: '請選擇其他類別！',
     split_nums: 3,
     callback_data: '/to-sub-other',
-    menu_list: [{ text: '投資理財', callback_data: '/other-invest' }, { text: '學習', callback_data: '/other-study' }, { text: '保險', callback_data: '/other-insurance' }, { text: '交通', callback_data: '/other-traffic' }, { text: '寵物', callback_data: '/other-pet' }, { text: '其他', callback_data: '/other-other' }]
+    menu_list: [{ text: '投資理財', callback_data: '/other-invest' }, { text: '學習', callback_data: '/other-study' }, { text: '保險', callback_data: '/other-insurance' }, { text: '醫療', callback_data: '/other-medicate' }, { text: '寵物', callback_data: '/other-pet' }, { text: '其他', callback_data: '/other-other' }]
   },
   {
     text: '收入',
     msg: '請選擇收入類別！',
     split_nums: 3,
     callback_data: '/to-sub-income',
-    menu_list: [{ text: '薪資', callback_data: '/income-salary' }, { text: '獎金', callback_data: '/income-bonus' }, { text: '投資', callback_data: '/income-invest' }, { text: '保險', callback_data: '/income-insurance' }, { text: '交通', callback_data: '/income-traffic' }, { text: '其他', callback_data: '/income-other' }]
+    menu_list: [{ text: '薪資', callback_data: '/income-salary' }, { text: '獎金', callback_data: '/income-bonus' }, { text: '投資', callback_data: '/income-invest' }, { text: '保險', callback_data: '/income-insurance' }, { text: '其他', callback_data: '/income-other' }]
   }
 ]
 
-const accountList = [{ text: '飲食', callback_data: '/to-sub-food' }, { text: '生活', callback_data: '/to-sub-life' }, { text: '其他', callback_data: '/to-sub-other' }, { text: '收入', callback_data: '/to-sub-income' },
-  { text: '早餐', callback_data: '/food-breakfast' }, { text: '午餐', callback_data: '/food-lunch' }, { text: '晚餐', callback_data: '/food-dinner' }, { text: '餐飲其他', callback_data: 'food-other' }, { text: '飲料', callback_data: 'food-drink' }, { text: '咖啡', callback_data: 'food-coffee' },
-  { text: '生活用品', callback_data: '/life-basicCommodities' }, { text: '日常', callback_data: '/life-daily' }, { text: '治裝/美容', callback_data: '/life-dressAndBeauty' }, { text: '娛樂', callback_data: '/life-entertainment' }, { text: '交際/聚餐', callback_data: '/life-social' },
-  { text: '投資理財', callback_data: '/other-invest' }, { text: '學習', callback_data: '/other-study' }, { text: '保險', callback_data: '/other-insurance' }, { text: '交通', callback_data: '/other-traffic' }, { text: '寵物', callback_data: '/other-pet' }, { text: '其他', callback_data: '/other-other' },
-  { text: '薪資', callback_data: '/income-salary' }, { text: '獎金', callback_data: '/income-bonus' }, { text: '投資', callback_data: '/income-invest' }, { text: '保險', callback_data: '/income-insurance' }, { text: '交通', callback_data: '/income-traffic' }, { text: '其他', callback_data: '/income-other' }]
+const accountList = [{ text: '早餐', callback_data: '/food-breakfast', cell_header: 'B' }, { text: '午餐', callback_data: '/food-lunch', cell_header: 'C' }, { text: '晚餐', callback_data: '/food-dinner', cell_header: 'D' }, { text: '餐飲其他', callback_data: 'food-other', cell_header: 'E' }, { text: '飲料', callback_data: 'food-drink', cell_header: 'F' }, { text: '咖啡', callback_data: 'food-coffee', cell_header: 'G' },
+  { text: '生活用品', callback_data: '/life-basicCommodities', cell_header: 'H' }, { text: '日常', callback_data: '/life-daily', cell_header: 'I' }, { text: '投資理財', callback_data: '/other-invest', cell_header: 'J' }, { text: '交通', callback_data: '/life-traffic', cell_header: 'K' }, { text: '治裝/美容', callback_data: '/life-dressAndBeauty', cell_header: 'L' }, { text: '娛樂', callback_data: '/life-entertainment', cell_header: 'M' },
+  { text: '交際/聚餐', callback_data: '/life-social', cell_header: 'N' }, { text: '學習', callback_data: '/other-study', cell_header: 'O' }, { text: '保險', callback_data: '/other-insurance', cell_header: 'P' }, { text: '醫療', callback_data: '/other-medicate', cell_header: 'Q' }, { text: '寵物', callback_data: '/other-pet', cell_header: 'R' }, { text: '其他', callback_data: '/other-other', cell_header: 'S' },
+  { text: '薪資', callback_data: '/income-salary', cell_header: 'U' }, { text: '獎金', callback_data: '/income-bonus', cell_header: 'V' }, { text: '投資', callback_data: '/income-invest', cell_header: 'W' }, { text: '保險', callback_data: '/income-insurance', cell_header: 'X' }, { text: '其他', callback_data: '/income-other', cell_header: 'Y' }]
 
 const inlineKeyboard = function (account, chatId) {
   bot.sendMessage(chatId, account.msg, {
@@ -76,7 +75,7 @@ const splitKeyboard = function (array, num) {
 const sendDateInlineKeyboard = function (chatId, day) {
   const dateArray = []
   for (let i = 0; i < 6; i++) {
-    const date = moment().add('d', day).add('d', i).format('M月DD日')
+    const date = moment().add('d', day).add('d', i).format('MM/DD')
 
     dateArray.push({ text: date, callback_data: '/date-confirm-' + date })
     if (i === 5) {
@@ -115,7 +114,8 @@ class TelegramBotService {
     //     photo: img
     //   })
     // })
-    bot.onText(/^\d+$/, async function (msg) {
+    bot.onText(/^\$/, async function (msg) {
+    // bot.onText(/^\d+$/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
       // const account = accountList.find(f => f.callback_data === data)
 
@@ -128,12 +128,16 @@ class TelegramBotService {
       const cacheJson = JSON.parse(cacheData)
       const account = accountList.find(f => f.callback_data === cacheJson.callback_data)
       if (account) {
-        const today = moment()
-        console.log((today.get('month') + 1) + ',' + today.get('date'))
-        const date = cacheJson.date ? cacheJson.date : `${(today.get('month') + 1)}月${today.get('date')}日`
-        const resp = await setData('1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4', '449205789', date, account.text, msg.text)
+        // const today = moment()
+        // console.log((today.get('month') + 1) + ',' + today.get('date'))
+        // const date = cacheJson.date ? cacheJson.date : `${(today.get('month') + 1  )}月${today.get('date')}日`
+        const splitText = msg.text.replace('$', '').split('-')
+        const money = splitText[0]
+        const memo = splitText.length > 1 ? splitText[1] : ''
+        const date = cacheJson.date ? cacheJson.date : moment().format('MM/DD')
+        const resp = await setData('1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4', '449205789', date, account.cell_header, money, memo)
         console.log(resp)
-        bot.sendMessage(chatId, `${account.text}:${msg.text}元，記帳完成！`)
+        bot.sendMessage(chatId, `${account.text}:${money}元，${memo ? '備註:' + memo : ''}，記帳完成！`)
       } else {
         bot.sendMessage(chatId, '尚未選擇記帳類別！')
       }
@@ -149,44 +153,46 @@ class TelegramBotService {
     bot.on('callback_query', async function (query) {
       const { data, message } = query
       const accountMenu = accountMenuList.find(f => f.callback_data === data)
+      const response = {}
       // console.log(query)
       // console.log(message.from.id, message.message_id, message.chat.id)
 
       if (accountMenu) {
         inlineKeyboard(accountMenu, message.chat.id)
-        bot.answerCallbackQuery(query.id, { text: accountMenu.msg })
+        response.text = accountMenu.msg
       } else if (data === '/select-date') {
         sendDateInlineKeyboard(message.chat.id, 0)
-        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
+        response.text = '請選擇日期！'
       } else if (data.includes('/date-previous')) {
         let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
         if (data.split('-')[2] === 'm') day *= -1
         sendDateInlineKeyboard(message.chat.id, day - 5)
-        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
+        response.text = '請選擇日期！'
       } else if (data.includes('/date-next')) {
         let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
         if (data.split('-')[2] === 'm') day *= -1
         sendDateInlineKeyboard(message.chat.id, day + 5)
-        bot.answerCallbackQuery(query.id, { text: '請選擇日期！' })
+        response.text = '請選擇日期！'
       } else if (data.includes('/date-confirm')) {
         const date = data.split('-')[2]
-        bot.answerCallbackQuery(query.id, { text: `已選擇日期${date}請選擇記帳類別！` })
         const cacheData = await redisClient.v4.get(message.chat.id.toString())
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.date = date
-        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
+        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 60 * 5)
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), message.chat.id)
+        response.text = `已選擇日期${date}請選擇記帳類別！`
       } else {
         const account = accountList.find(f => f.callback_data === data)
-
         if (!account) return
 
         const cacheData = await redisClient.v4.get(message.chat.id.toString())
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.callback_data = data
-        bot.answerCallbackQuery(query.id, { text: `已選取${account.text}，請輸入金額！` })
-        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
+        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 60 * 5)
+        response.text = `已選取${account.text}，請輸入金額！`
       }
+
+      bot.answerCallbackQuery(query.id, response)
     })
   }
 

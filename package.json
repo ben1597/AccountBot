@@ -19,6 +19,7 @@
     "express": "~4.16.1",
     "express-session": "^1.17.3",
     "google-spreadsheet": "^3.3.0",
+    "googleapis": "^118.0.0",
     "moment": "^2.29.4",
     "node-fetch-commonjs": "^3.2.4",
     "node-telegram-bot-api": "^0.61.0",
