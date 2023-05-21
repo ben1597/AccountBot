@@ -178,7 +178,9 @@ class TelegramBotService {
         const cacheData = await redisClient.v4.get(message.chat.id.toString())
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.date = date
-        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 60 * 5)
+        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
+        console.log('set redise')
+        // await redisClient.set(message.chat.id, JSON.stringify(cacheJson), { EX: 60 * 60 })
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), message.chat.id)
         response.text = `已選擇日期${date}請選擇記帳類別！`
       } else {
@@ -188,7 +190,9 @@ class TelegramBotService {
         const cacheData = await redisClient.v4.get(message.chat.id.toString())
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.callback_data = data
-        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 60 * 5)
+        await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
+        console.log('set redise')
+        // await redisClient.set(message.chat.id, JSON.stringify(cacheJson), { EX: 60 * 60 })
         response.text = `已選取${account.text}，請輸入金額！`
       }
 
