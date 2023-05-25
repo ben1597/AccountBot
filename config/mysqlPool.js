@@ -20,7 +20,7 @@ const dbConfig = {
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
-  database: process.env.DB_DATABASE || 'game_manage',
+  database: process.env.DB_DATABASE || 'account',
   multipleStatements: true,
   waitForConnections: true,
   connectionLimit: 10,

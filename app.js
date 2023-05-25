@@ -59,6 +59,7 @@ const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
 const client = require('./config/redisClient')
 const logger = require('./libs/log/logger')
+// const path = require('path')
 const app = express()
 
 app.use(session({
@@ -70,6 +71,12 @@ app.use(session({
   saveUninitialized: false,
   proxy: true
 }))
+
+// app.use(express.static(path.join(__dirname, 'img')))
+
+// app.listen(3000, () => {
+//   console.log('Server started on port 3000')
+// })
 
 listenStart()
 // listenCal()

@@ -3,6 +3,7 @@ const TelegramBot = require('node-telegram-bot-api')
 const redisClient = require('../config/redisClient')
 const { setData } = require('./googleSheet.js')
 const moment = require('moment/moment')
+const googleSheetRepository = require('../repository/account/googleSheetRepository')
 // const { json } = require('express')
 // const fs = require('fs')
 // const fetch = require('node-fetch-commonjs')
@@ -99,26 +100,9 @@ class TelegramBotService {
   async listenStart () {
     // console.log(bot.getUpdates())
 
-    // bot.onText(/^.*$/, function (msg) {
-    //   const chatId = msg.chat.id // 用戶的ID
-    //   //   TelegramBotService.checkInput(chatId, msg.text)
-    //   // inlineKeyboard(accountList.find(f => f.callback_data === '/to-main'), chatId)
-    // })
-    // const img = fs.createReadStream('./img/account_main.png')
-
-    // bot.onText(/\/start/, function (msg) {
-    //   const chatId = msg.chat.id // 用戶的ID
-    //   bot.sendPhoto({
-    //     chat_id: chatId,
-    //     caption: '歡迎使用記帳機器人！',
-    //     photo: img
-    //   })
-    // })
     bot.onText(/^\$/, async function (msg) {
     // bot.onText(/^\d+$/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
-      // const account = accountList.find(f => f.callback_data === data)
-
       const cacheData = await redisClient.v4.get(chatId.toString())
       if (!cacheData) {
         bot.sendMessage(chatId, '尚未選擇記帳類別！')
@@ -128,9 +112,6 @@ class TelegramBotService {
       const cacheJson = JSON.parse(cacheData)
       const account = accountList.find(f => f.callback_data === cacheJson.callback_data)
       if (account) {
-        // const today = moment()
-        // console.log((today.get('month') + 1) + ',' + today.get('date'))
-        // const date = cacheJson.date ? cacheJson.date : `${(today.get('month') + 1  )}月${today.get('date')}日`
         const splitText = msg.text.replace('$', '').split('-')
         const money = splitText[0]
         const memo = splitText.length > 1 ? splitText[1] : ''
@@ -143,10 +124,16 @@ class TelegramBotService {
       }
     })
 
-    bot.onText(/\/\$/, function (msg) {
+    bot.onText(/\/\$/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
-      //   TelegramBotService.checkInput(chatId, msg.text)
-      inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
+      const googleSheet = await googleSheetRepository.getRecord(chatId)
+      // console.log(googleSheet)
+      if (!googleSheet.id) {
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！')
+        bot.sendPhoto(chatId, 'https://img.freepik.com/free-vector/collection-round-contact-buttons_23-2147607168.jpg')
+      } else {
+        inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
+      }
     })
 
     // 監聽inlineKeyboard回應
@@ -154,8 +141,6 @@ class TelegramBotService {
       const { data, message } = query
       const accountMenu = accountMenuList.find(f => f.callback_data === data)
       const response = {}
-      // console.log(query)
-      // console.log(message.from.id, message.message_id, message.chat.id)
 
       if (accountMenu) {
         inlineKeyboard(accountMenu, message.chat.id)
@@ -179,8 +164,6 @@ class TelegramBotService {
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.date = date
         await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
-        console.log('set redise')
-        // await redisClient.set(message.chat.id, JSON.stringify(cacheJson), { EX: 60 * 60 })
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), message.chat.id)
         response.text = `已選擇日期${date}請選擇記帳類別！`
       } else {
@@ -191,8 +174,6 @@ class TelegramBotService {
         const cacheJson = JSON.parse(cacheData ?? '{}')
         cacheJson.callback_data = data
         await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
-        console.log('set redise')
-        // await redisClient.set(message.chat.id, JSON.stringify(cacheJson), { EX: 60 * 60 })
         response.text = `已選取${account.text}，請輸入金額！`
       }
 
