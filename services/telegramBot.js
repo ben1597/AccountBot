@@ -130,7 +130,8 @@ class TelegramBotService {
       // console.log(googleSheet)
       if (!googleSheet.id) {
         bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！')
-        bot.sendPhoto(chatId, 'https://img.freepik.com/free-vector/collection-round-contact-buttons_23-2147607168.jpg')
+        // bot.sendPhoto(chatId, 'https://img.freepik.com/free-vector/collection-round-contact-buttons_23-2147607168.jpg')
+        bot.sendPhoto(chatId, 'https://35.185.130.105:3000/account_main.png')
       } else {
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
       }
