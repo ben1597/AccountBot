@@ -2,9 +2,9 @@ const Repository = require('../baseRepository')
 const pool = require('../../config/mysqlPool')
 
 class GoogleSheetRepository extends Repository {
-  async getRecord (chartId) {
+  async getRecord (chatId) {
     const whereConditions = {
-      chartId
+      chatId
     }
 
     const whereClause = Object.keys(whereConditions)
@@ -16,12 +16,13 @@ class GoogleSheetRepository extends Repository {
     const params = Object.values(whereConditions)
 
     const [rows] = await this.query(sql, params)
-    return [rows][0]
+    return [rows][0][0]
   }
 
   async insertRecord (record) {
-    const sql = 'insert into account.google_sheet(chartId, docId, sheetId) values( ?, ?, ?)'
-    await this.query(sql, [record.chartId, record.docId, record.sheetId])
+    const sql = 'insert into account.google_sheet(chatId, docId, sheetId) values( ?, ?, ?)'
+    const [rows] = await this.query(sql, [record.chatId, record.docId, record.sheetId])
+    return [rows][0]
   }
 }
 

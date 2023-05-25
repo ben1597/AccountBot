@@ -109,6 +109,12 @@ class TelegramBotService {
         return
       }
 
+      const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
+      if (!googleSheet || !googleSheet.id) {
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        return
+      }
+
       const cacheJson = JSON.parse(cacheData)
       const account = accountList.find(f => f.callback_data === cacheJson.callback_data)
       if (account) {
@@ -116,7 +122,7 @@ class TelegramBotService {
         const money = splitText[0]
         const memo = splitText.length > 1 ? splitText[1] : ''
         const date = cacheJson.date ? cacheJson.date : moment().format('MM/DD')
-        const resp = await setData('1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4', '449205789', date, account.cell_header, money, memo)
+        const resp = await setData(googleSheet.docId, googleSheet.sheetId, date, account.cell_header, money, memo)
         console.log(resp)
         bot.sendMessage(chatId, `${account.text}:${money}元，${memo ? '備註:' + memo : ''}，記帳完成！`)
       } else {
@@ -126,15 +132,37 @@ class TelegramBotService {
 
     bot.onText(/\/\$/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
-      const googleSheet = await googleSheetRepository.getRecord(chatId)
+      const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
       // console.log(googleSheet)
-      if (!googleSheet.id) {
-        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！')
+      if (!googleSheet || !googleSheet.id) {
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        // bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！點擊按鈕後輸入DocId和SheetId \nexample (DocId|SheetId)： \n1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789', {
+        //   reply_markup: {
+        //     inline_keyboard: [[{ text: '初始化Google-Sheet-ID', callback_data: '/create-doc-id' }]],
+        //     resize_keyboard: true,
+        //     one_time_keyboard: true
+        //   }
+        // })
         // bot.sendPhoto(chatId, 'https://img.freepik.com/free-vector/collection-round-contact-buttons_23-2147607168.jpg')
-        bot.sendPhoto(chatId, 'https://35.185.130.105:3000/account_main.png')
+        // bot.sendPhoto(chatId, 'https://35.185.130.105:3000/account_main.png')
       } else {
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
       }
+    })
+
+    bot.onText(/^Create\|/, async function (msg) {
+      const chatId = msg.chat.id // 用戶的ID
+      const docData = msg.text.split('|')
+      const docId = docData[1]
+      const sheetId = docData[2]
+
+      if (!docId || !sheetId) {
+        bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
+        return
+      }
+      const result = await googleSheetRepository.insertRecord({ chatId, docId, sheetId })
+      console.log(result)
+      bot.sendMessage(chatId, '建立成功！')
     })
 
     // 監聽inlineKeyboard回應
