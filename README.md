@@ -12,6 +12,8 @@
 # 相關技術
 ### 1. Node.js 建立機器人監聽
 ### 2. 依照輸入回應對應Telegram內嵌式鍵盤
-### 3. 連接 Google Sheet API
+### 3. Redis存取聊天室點擊資訊
+### 4. MySql存取聊天室對應的Google Sheet ID
+### 5. 連接 Google Sheet API
 
 
