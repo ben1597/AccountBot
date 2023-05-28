@@ -100,6 +100,11 @@ class TelegramBotService {
   async listenStart () {
     // console.log(bot.getUpdates())
 
+    bot.onText(/\/help/, async function (msg) {
+      const chatId = msg.chat.id // 用戶的ID
+      bot.sendMessage(chatId, '/$ - 喚醒記帳機器人 \n /link - 取得Google Sheet連結 \n Create|DocId|SheetId - 建立Google Sheet \n Rebind|DocId|SheetId - 重新綁定Google Sheet \n /test - 測試用')
+    })
+
     bot.onText(/^\$/, async function (msg) {
     // bot.onText(/^\d+$/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
@@ -156,6 +161,11 @@ class TelegramBotService {
       const docId = docData[1]
       const sheetId = docData[2]
 
+      const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
+      if (googleSheet && googleSheet.id) {
+        bot.sendMessage(chatId, '此聊天室已建立對應Google Sheet！要重新綁定GoogleSheet請輸入Rebind+DocId和SheetId \nexample (Rebind|{DocId}|{SheetId})： \nRebind|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+      }
+
       if (!docId || !sheetId) {
         bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
         return
@@ -165,29 +175,55 @@ class TelegramBotService {
       bot.sendMessage(chatId, '建立成功！')
     })
 
+    bot.onText(/^Rebind\|/, async function (msg) {
+      const chatId = msg.chat.id // 用戶的ID
+      const docData = msg.text.split('|')
+      const docId = docData[1]
+      const sheetId = docData[2]
+
+      if (!docId || !sheetId) {
+        bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
+        return
+      }
+      const result = await googleSheetRepository.updateRecord({ chatId, docId, sheetId })
+      console.log(result)
+      bot.sendMessage(chatId, '重新綁定成功！')
+    })
+
+    bot.onText(/\/link/, async function (msg) {
+      const chatId = msg.chat.id // 用戶的ID
+      const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
+      // console.log(googleSheet)
+      if (!googleSheet || !googleSheet.id) {
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+      } else {
+        bot.sendMessage(chatId, `https://docs.google.com/spreadsheets/d/${googleSheet.docId}/edit#gid=${googleSheet.sheetId}`)
+      }
+    })
+
     // 監聽inlineKeyboard回應
     bot.on('callback_query', async function (query) {
       const { data, message } = query
       const accountMenu = accountMenuList.find(f => f.callback_data === data)
       const response = {}
 
-      if (accountMenu) {
+      if (accountMenu) { // 有對應的子選單
         inlineKeyboard(accountMenu, message.chat.id)
         response.text = accountMenu.msg
-      } else if (data === '/select-date') {
+      } else if (data === '/select-date') { // 選擇日期
         sendDateInlineKeyboard(message.chat.id, 0)
         response.text = '請選擇日期！'
-      } else if (data.includes('/date-previous')) {
+      } else if (data.includes('/date-previous')) { // 選擇往前日期
         let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
         if (data.split('-')[2] === 'm') day *= -1
         sendDateInlineKeyboard(message.chat.id, day - 5)
         response.text = '請選擇日期！'
-      } else if (data.includes('/date-next')) {
+      } else if (data.includes('/date-next')) { // 選擇往後日期
         let day = isNaN(data.split('-')[2]) ? parseInt(data.split('-')[3]) : parseInt(data.split('-')[2])
         if (data.split('-')[2] === 'm') day *= -1
         sendDateInlineKeyboard(message.chat.id, day + 5)
         response.text = '請選擇日期！'
-      } else if (data.includes('/date-confirm')) {
+      } else if (data.includes('/date-confirm')) { // 確認日期
         const date = data.split('-')[2]
         const cacheData = await redisClient.v4.get(message.chat.id.toString())
         const cacheJson = JSON.parse(cacheData ?? '{}')
@@ -195,7 +231,7 @@ class TelegramBotService {
         await redisClient.set(message.chat.id, JSON.stringify(cacheJson), 'EX', 60 * 5)
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), message.chat.id)
         response.text = `已選擇日期${date}請選擇記帳類別！`
-      } else {
+      } else { // 確認選擇記帳類別
         const account = accountList.find(f => f.callback_data === data)
         if (!account) return
 
@@ -209,75 +245,6 @@ class TelegramBotService {
       bot.answerCallbackQuery(query.id, response)
     })
   }
-
-  // static checkInput (chatId, msg) {
-  //   const regexStart = /\/start/
-  //   const regexFood = /飲食/g
-  //   const regexLife = /生活/g
-  //   const regexOther = /其他類別/g
-  //   const regexIncome = /收入/g
-
-  //   if (regexStart.test(msg)) {
-  //     bot.sendMessage(chatId, '歡迎使用記帳機器人！', {
-  //       reply_markup: {
-  //         keyboard: [['飲食', '生活', '其他類別', '收入']],
-  //         resize_keyboard: true,
-  //         one_time_keyboard: true
-  //       }
-  //     })
-  //   }
-  //   if (regexFood.test(msg)) {
-  //     bot.sendMessage(chatId, '請選擇飲食類別', {
-  //       reply_markup: {
-  //         keyboard: [['早餐', '午餐', '晚餐']],
-  //         resize_keyboard: true,
-  //         one_time_keyboard: true
-  //       }
-  //     })
-  //   }
-  //   if (regexLife.test(msg)) {
-  //     bot.sendMessage(chatId, '請選擇生活類別', {
-  //       reply_markup: {
-  //         keyboard: [['生活用品', '日常', '治裝/美容'],
-  //           ['娛樂', '交際/聚餐']],
-  //         resize_keyboard: true,
-  //         one_time_keyboard: true
-  //       }
-  //     })
-  //   }
-  //   if (regexOther.test(msg)) {
-  //     bot.sendMessage(chatId, '請選擇其他類別', {
-  //       reply_markup: {
-  //         keyboard: [['投資理財', '學習', '醫療'],
-  //           ['保險', '交通', '寵物', '其他']],
-  //         resize_keyboard: true,
-  //         one_time_keyboard: true
-  //       }
-  //     })
-  //   }
-  //   if (regexIncome.test(msg)) {
-  //     bot.sendMessage(chatId, '請選擇收入類別', {
-  //       reply_markup: {
-  //         keyboard: [['薪資', '獎金', '投資(入)'],
-  //           ['保險(入)', '其他(入)']],
-  //         resize_keyboard: true,
-  //         one_time_keyboard: true
-  //       }
-  //     })
-  //   }
-  // }
-
-  //   listenCal () {
-  //     // 收到/cal開頭的訊息時會觸發這段程式
-  //     bot.onText(/\/cal (.+)/, function (msg, match) {
-  //       const chatId = msg.chat.id // 用戶的ID
-  //       let resp = match[1].replace(/[^-()\d/*+.]/g, '')
-  //       // match[1]的意思是 /cal 後面的所有內容
-  //       resp = '計算結果為: ' + eval(resp)
-  //       // eval是用作執行計算的function
-  //       bot.sendMessage(chatId, resp) // 發送訊息的function
-  //     })
-  //   }
 
   listenTest () {
     // 收到/cal開頭的訊息時會觸發這段程式

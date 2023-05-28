@@ -35,7 +35,7 @@ async function setData (docID, sheetID, date, header, money, memo) {
   const sheet = doc.sheetsById[sheetID]
   await sheet.loadCells('A1:T36')
 
-  const day = parseInt(date.split('/')[1]) + 4
+  const day = parseInt(date.split('/')[1]) + 5 // 5: excel前面的title列數
   sheet.getCellByA1(header + day).value = money
   sheet.getCellByA1(header + day).note = memo
   await sheet.saveUpdatedCells()

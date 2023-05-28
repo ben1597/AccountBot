@@ -24,6 +24,12 @@ class GoogleSheetRepository extends Repository {
     const [rows] = await this.query(sql, [record.chatId, record.docId, record.sheetId])
     return [rows][0]
   }
+
+  async updateRecord (record) {
+    const sql = 'update account.google_sheet set docId = ?, sheetId = ? where chatId = ?'
+    const [rows] = await this.query(sql, [record.docId, record.sheetId, record.chatId])
+    return [rows][0]
+  }
 }
 
 module.exports = new GoogleSheetRepository(pool)
