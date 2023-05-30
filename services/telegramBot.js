@@ -102,7 +102,7 @@ class TelegramBotService {
 
     bot.onText(/\/help/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
-      bot.sendMessage(chatId, '/$ - 喚醒記帳機器人 \n /link - 取得Google Sheet連結 \n Create|DocId|SheetId - 建立Google Sheet \n Rebind|DocId|SheetId - 重新綁定Google Sheet \n /test - 測試用')
+      bot.sendMessage(chatId, '/$ - 喚醒記帳機器人 \n /link - 取得Google Sheet連結 \n 輸入Google Sheet網址 - 建立Google Sheet(如已有對應ID則重新綁定)  \n /test - 測試用')
     })
 
     bot.onText(/^\$/, async function (msg) {
@@ -129,7 +129,7 @@ class TelegramBotService {
         const date = cacheJson.date ? cacheJson.date : moment().format('MM/DD')
         const resp = await setData(googleSheet.docId, googleSheet.sheetId, date, account.cell_header, money, memo)
         console.log(resp)
-        bot.sendMessage(chatId, `${account.text}:${money}元，${memo ? '備註:' + memo : ''}，記帳完成！`)
+        bot.sendMessage(chatId, `${date}.${account.text}:${money}元${memo ? '，備註:' + memo : ''}，記帳完成！`)
       } else {
         bot.sendMessage(chatId, '尚未選擇記帳類別！')
       }
@@ -140,54 +140,48 @@ class TelegramBotService {
       const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
       // console.log(googleSheet)
       if (!googleSheet || !googleSheet.id) {
-        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
-        // bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！點擊按鈕後輸入DocId和SheetId \nexample (DocId|SheetId)： \n1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789', {
-        //   reply_markup: {
-        //     inline_keyboard: [[{ text: '初始化Google-Sheet-ID', callback_data: '/create-doc-id' }]],
-        //     resize_keyboard: true,
-        //     one_time_keyboard: true
-        //   }
-        // })
-        // bot.sendPhoto(chatId, 'https://img.freepik.com/free-vector/collection-round-contact-buttons_23-2147607168.jpg')
-        // bot.sendPhoto(chatId, 'https://35.185.130.105:3000/account_main.png')
+        // bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！請輸入要綁定的Google Sheet網址(範本[請複製一份至自己的Google雲端硬碟]:https://docs.google.com/spreadsheets/d/1NpJLTo_c3wx9oP6qHv3Ksx-H_H5Vg8bWTUPcJjpp_kk/edit#gid=1488856371)', {
+          reply_markup: {
+            inline_keyboard: [[{ text: '初始化Google-Sheet-ID', callback_data: '/create-doc-id' }]],
+            resize_keyboard: true,
+            one_time_keyboard: true
+          }
+        })
+        bot.sendPhoto(chatId, 'https://drive.google.com/uc?export=view&id=12n4zuLoj3A4FDRpSfSjowO5_QO8FGZST')
       } else {
         inlineKeyboard(accountMenuList.find(f => f.callback_data === '/to-main'), chatId)
       }
     })
 
-    bot.onText(/^Create\|/, async function (msg) {
+    // bot.onText(/^Create\|/, async function (msg) {
+    bot.onText(/docs\.google\.com\/spreadsheets/, async function (msg) {
       const chatId = msg.chat.id // 用戶的ID
-      const docData = msg.text.split('|')
-      const docId = docData[1]
-      const sheetId = docData[2]
+
+      const parsedUrl = new URL(msg.text)
+      const docId = parsedUrl.pathname.split('/')[3]
+      const sheetId = parsedUrl.hash.split('=')[1]
+
+      // const docData = msg.text.split('|')
+      // const docId = docData[1]
+      // const sheetId = docData[2]
+
+      if (!docId || !sheetId) {
+        bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
+        return
+      }
 
       const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
       if (googleSheet && googleSheet.id) {
-        bot.sendMessage(chatId, '此聊天室已建立對應Google Sheet！要重新綁定GoogleSheet請輸入Rebind+DocId和SheetId \nexample (Rebind|{DocId}|{SheetId})： \nRebind|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        // bot.sendMessage(chatId, '此聊天室已建立對應Google Sheet！要重新綁定GoogleSheet請輸入Rebind+DocId和SheetId \nexample (Rebind|{DocId}|{SheetId})： \nRebind|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        const result = await googleSheetRepository.updateRecord({ chatId, docId, sheetId })
+        console.log(result)
+        bot.sendMessage(chatId, '重新綁定成功！')
+      } else {
+        const result = await googleSheetRepository.insertRecord({ chatId, docId, sheetId })
+        console.log(result)
+        bot.sendMessage(chatId, '建立成功！')
       }
-
-      if (!docId || !sheetId) {
-        bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
-        return
-      }
-      const result = await googleSheetRepository.insertRecord({ chatId, docId, sheetId })
-      console.log(result)
-      bot.sendMessage(chatId, '建立成功！')
-    })
-
-    bot.onText(/^Rebind\|/, async function (msg) {
-      const chatId = msg.chat.id // 用戶的ID
-      const docData = msg.text.split('|')
-      const docId = docData[1]
-      const sheetId = docData[2]
-
-      if (!docId || !sheetId) {
-        bot.sendMessage(chatId, '輸入格式錯誤，請重新輸入！')
-        return
-      }
-      const result = await googleSheetRepository.updateRecord({ chatId, docId, sheetId })
-      console.log(result)
-      bot.sendMessage(chatId, '重新綁定成功！')
     })
 
     bot.onText(/\/link/, async function (msg) {
@@ -195,7 +189,7 @@ class TelegramBotService {
       const googleSheet = await googleSheetRepository.getRecord(chatId.toString())
       // console.log(googleSheet)
       if (!googleSheet || !googleSheet.id) {
-        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！輸入DocId和SheetId \nexample (Create|{DocId}|{SheetId})： \nCreate|1Dy6FMGd80NGuM5jmf7Chz1vgPxPCGn1XBtd-LSsGtA4|449205789')
+        bot.sendMessage(chatId, '此聊天室尚未建立對應Google Sheet！')
       } else {
         bot.sendMessage(chatId, `https://docs.google.com/spreadsheets/d/${googleSheet.docId}/edit#gid=${googleSheet.sheetId}`)
       }
