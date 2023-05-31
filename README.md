@@ -5,9 +5,9 @@
 # 使用流程
 ### 1. 使用Telegram加入機器人 https://t.me/ABaoAccountBot
 ### 2. 輸入/$並開始設置流程(Google Sheet範本, 請複製一份至自己的雲端硬碟) https://docs.google.com/spreadsheets/d/1NpJLTo_c3wx9oP6qHv3Ksx-H_H5Vg8bWTUPcJjpp_kk/edit#gid=449205789
-![Instruction](https://drive.google.com/uc?export=view&id=12n4zuLoj3A4FDRpSfSjowO5_QO8FGZST)
 <!-- ![Stormtroopocat](https://images.klipfolio.com/website/public/2ab84d48-d60e-4e2a-91d5-ec3aa585dc13/google-sheets-blog-banner.png") -->
-### 3. 開始記帳
+### 3. 輸入/help，並照指示設置房間對應google sheet
+### 4. 開始記帳
 
 ---
 # 相關技術
